@@ -4,9 +4,9 @@ import { useSetState } from 'src/hooks/use-set-state';
 
 import axios, { endpoints } from 'src/utils/axios';
 
+import { setSession } from './utils';
 import { STORAGE_KEY } from './constant';
 import { AuthContext } from '../auth-context';
-import { setSession, isValidToken } from './utils';
 
 import type { AuthState } from '../../types';
 
@@ -32,19 +32,31 @@ export function AuthProvider({ children }: Props) {
     try {
       const accessToken = sessionStorage.getItem(STORAGE_KEY);
 
-      if (accessToken && isValidToken(accessToken)) {
-        setSession(accessToken);
-
-        const res = await axios.get(endpoints.auth.me);
-
-        const { user } = res.data;
-
-        setState({ user: { ...user, accessToken }, loading: false });
-      } else {
+      if (!accessToken) {
         setState({ user: null, loading: false });
+        return;
       }
+
+      await setSession(accessToken);
+
+      const res = await axios.get(endpoints.users.me);
+      const payload = res.data;
+
+      if (payload?.success === false) {
+        throw new Error(payload?.message || 'Failed to fetch user profile');
+      }
+
+      const user = payload?.data?.user ?? payload?.data;
+
+      if (!user) {
+        throw new Error('User profile not found in response');
+      }
+
+      setState({ user: { ...user, accessToken }, loading: false });
     } catch (error) {
       console.error(error);
+
+      await setSession(null, null);
       setState({ user: null, loading: false });
     }
   }, [setState]);

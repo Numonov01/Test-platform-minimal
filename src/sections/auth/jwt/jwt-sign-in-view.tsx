@@ -27,10 +27,7 @@ import { signInWithPassword } from 'src/auth/context/jwt';
 export type SignInSchemaType = zod.infer<typeof SignInSchema>;
 
 export const SignInSchema = zod.object({
-  email: zod
-    .string()
-    .min(1, { message: 'Email manzili kiritilishi shart!' })
-    .email({ message: "Email manzili to'g'ri bo'lishi kerak!" }),
+  username: zod.string().min(1, { message: 'Username kiritilishi shart!' }),
   password: zod
     .string()
     .min(1, { message: 'Parol kiritilishi shart!' })
@@ -49,8 +46,8 @@ export function JwtSignInView() {
   const password = useBoolean();
 
   const defaultValues = {
-    email: 'demo@minimals.cc',
-    password: '@demo1',
+    username: 'tokhir_uz',
+    password: 'Tokhir@12345',
   };
 
   const methods = useForm<SignInSchemaType>({
@@ -65,7 +62,7 @@ export function JwtSignInView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await signInWithPassword({ email: data.email, password: data.password });
+      await signInWithPassword({ username: data.username, password: data.password });
       await checkUserSession?.();
 
       router.refresh();
@@ -87,7 +84,7 @@ export function JwtSignInView() {
 
   const renderForm = (
     <Stack spacing={3}>
-      <Field.Text name="email" label="Email manzili" InputLabelProps={{ shrink: true }} />
+      <Field.Text name="username" label="Username" InputLabelProps={{ shrink: true }} />
 
       <Stack spacing={1.5}>
         <Link
@@ -137,7 +134,7 @@ export function JwtSignInView() {
       {renderHead}
 
       <Alert severity="info" sx={{ mb: 3 }}>
-        Foydalaning <strong>{defaultValues.email}</strong>
+        Foydalaning <strong>{defaultValues.username}</strong>
         {' parol bilan '}
         <strong>{defaultValues.password}</strong>
       </Alert>
